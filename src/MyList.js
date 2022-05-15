@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useState, useEffect} from 'react'
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
@@ -6,7 +6,7 @@ import ListItemAvatar from '@mui/material/ListItemAvatar';
 import Avatar from '@mui/material/Avatar';
 import ImageIcon from '@mui/icons-material/Image';
 
-import {Paper, Stack, Typography, IconButton, InputBase, } from '@mui/material'
+import {Paper, Stack, Typography, IconButton, InputBase, Box, Slider, Chip} from '@mui/material'
 
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import SortIcon from '@mui/icons-material/Sort';
@@ -20,13 +20,27 @@ import data from './yoshinoya.json'
 
 export default function MyList() {
   const [foods, setFoods] = useState(data);
+  const [text, setText] = useState("");
+  const [value, setValue] = useState([0, 2000]);
+
+  useEffect(() => {
+    console.log('effect')
+    const foods = data.filter((food) => {
+      var ok = food[0].includes(text);
+      ok = ok && food[3] > value[0] && food[3] < value[1];
+      return ok;
+    })
+    setFoods(foods);
+  }, [text, value])
 
   return (
     <Stack spacing={2}>
     <Typography fontSize={30}>
       <b>吉野家</b>
     </Typography>
-    <MyInput foods={foods} setFoods={setFoods}/>
+    <MySlider setFoods={setFoods} text={text} value={value} setValue={setValue}/>
+    <Chips setValue={setValue}/>
+    <MyInput setFoods={setFoods} text={text} setText={setText} value={value}/>
     <Buttons foods={foods} setFoods={setFoods}/>
     <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
       {foods.map(food => {
@@ -48,6 +62,23 @@ export default function MyList() {
     </Stack>
   );
 }
+
+function Chips(props){
+  const {setValue} = props;
+  const handleClick1 = () => {
+    setValue([700, 1000]);
+  }
+  const handleClick2 = () => {
+    setValue([400, 600]);
+  }
+  return(
+    <Stack direction="row">
+      <Chip label="筋トレ" onClick={handleClick1}/>
+      <Chip label="ダイエット" onClick={handleClick2}/>
+    </Stack>
+  )
+}
+
 
 function Buttons(props) {
   const {foods, setFoods} = props
@@ -91,20 +122,22 @@ function Buttons(props) {
 }
 
 function MyInput(props) {
-  const [text, setText] = useState('')
-  const {foods, setFoods} = props;
+  // const [text, setText] = useState('')
+  const {text, setText, setFoods, value} = props;
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const foods1 = foods.filter((food) => {
-      return food[0].includes(text)
-    })
-    setFoods(foods1);
-
   }
 
   const handleChange = (e) => {
-    setText(e.target.value)
+    const text = e.target.value;
+    setText(text);
+    // const foods = data.filter((food) => {
+    //   var ok = food[0].includes(text);
+    //   ok = ok && food[3] > value[0] && food[3] < value[1];
+    //   return ok;
+    // })
+    // setFoods(foods);
   }
 
   return (
@@ -125,5 +158,38 @@ function MyInput(props) {
         onChange={handleChange}
       />
     </Paper>
+  );
+}
+
+
+function MySlider(props) {
+  const {text, setFoods, value, setValue} = props;
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+  const handleChangeCommited = () => {
+    console.log('commit');
+    // const foods = data.filter((food) => {
+    //   var ok = food[0].includes(text);
+    //   ok = ok && food[3] > value[0] && food[3] < value[1];
+    //   return ok;
+    // })
+    // setFoods(foods);
+  }
+
+  return (
+    <Box sx={{ width: 300 }}>
+      <Slider
+        value={value}
+        onChange={handleChange}
+        valueLabelDisplay="auto"
+        step={100}
+        marks
+        min={0}
+        max={2000}
+        onChangeCommitted={handleChangeCommited}
+      />
+    </Box>
   );
 }
